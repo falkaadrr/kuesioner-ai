@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kuesioner Penelitian — Pemanfaatan AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c28;
+      --border: #2a2a3d;
+      --accent: #7c6fff;
+      --accent2: #ff6fb0;
+      --accent3: #6fffd4;
+      --text: #e8e8f0;
+      --text-muted: #7a7a99;
+      --radius: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* BG Noise + Gradient */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% -10%, rgba(124,111,255,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(255,111,176,0.10) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 60px 0 50px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(124,111,255,0.15);
+      border: 1px solid rgba(124,111,255,0.3);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(26px, 5vw, 42px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #e8e8f0 0%, var(--accent) 60%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* PROGRESS */
+    .progress-bar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      height: 6px;
+      margin-bottom: 40px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 100px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* FORM IDENTITAS */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--accent); }
+    .form-group select option { background: var(--surface2); }
+
+    /* SECTION HEADER */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 40px 0 24px;
+    }
+    .section-tag {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .tag-x { background: rgba(124,111,255,0.15); color: var(--accent); border: 1px solid rgba(124,111,255,0.3); }
+    .tag-y { background: rgba(111,255,212,0.1); color: var(--accent3); border: 1px solid rgba(111,255,212,0.25); }
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* LIKERT TABLE */
+    .likert-scale-header {
+      display: grid;
+      grid-template-columns: 1fr 40px 40px 40px 40px 40px;
+      gap: 4px;
+      padding: 0 12px 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .scale-label {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .question-row {
+      display: grid;
+      grid-template-columns: 1fr 40px 40px 40px 40px 40px;
+      gap: 4px;
+      align-items: center;
+      padding: 14px 12px;
+      border-radius: 10px;
+      transition: background 0.15s;
+      border-bottom: 1px solid rgba(42,42,61,0.5);
+    }
+    .question-row:last-child { border-bottom: none; }
+    .question-row:hover { background: var(--surface2); }
+    .question-row.answered { background: rgba(124,111,255,0.04); }
+
+    .q-text {
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--text);
+      padding-right: 12px;
+    }
+    .q-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--accent);
+      margin-right: 6px;
+    }
+
+    .radio-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .radio-cell input[type="radio"] { display: none; }
+    .radio-cell label {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .radio-cell input[type="radio"]:checked + label {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      transform: scale(1.1);
+      box-shadow: 0 0 12px rgba(124,111,255,0.4);
+    }
+    .radio-cell:nth-child(3) input:checked + label { background: #5a5aff; border-color: #5a5aff; }
+    .radio-cell:nth-child(4) input:checked + label { background: #888; border-color: #888; }
+    .radio-cell:nth-child(5) input:checked + label { background: #ff9b3d; border-color: #ff9b3d; box-shadow: 0 0 12px rgba(255,155,61,0.4); }
+    .radio-cell:nth-child(6) input:checked + label { background: var(--accent3); border-color: var(--accent3); color: #0a0a0f; box-shadow: 0 0 12px rgba(111,255,212,0.4); }
+
+    /* SUBMIT */
+    .submit-wrap { text-align: center; margin-top: 48px; }
+    .btn-submit {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      border: none;
+      padding: 16px 48px;
+      border-radius: 100px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 24px rgba(124,111,255,0.3);
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(124,111,255,0.5);
+    }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .submit-note { margin-top: 12px; font-size: 12px; color: var(--text-muted); }
+
+    /* SUCCESS */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 80px 40px;
+    }
+    .success-icon {
+      width: 80px; height: 80px;
+      background: rgba(111,255,212,0.1);
+      border: 2px solid var(--accent3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 24px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(111,255,212,0.3); }
+      50% { box-shadow: 0 0 0 16px rgba(111,255,212,0); }
+    }
+    .success-screen h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .success-screen p { color: var(--text-muted); font-size: 15px; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 14px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+      max-width: 300px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { border-color: #ff6b6b; color: #ff6b6b; }
+    .toast.success { border-color: var(--accent3); color: var(--accent3); }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .likert-scale-header, .question-row { grid-template-columns: 1fr 32px 32px 32px 32px 32px; }
+      .radio-cell label { width: 24px; height: 24px; font-size: 10px; }
+      .q-text { font-size: 12.5px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">Penelitian Statistika Sosial</div>
+    <h1>Pengaruh Pemanfaatan AI terhadap Kemampuan Berpikir Kritis</h1>
+    <p>Kuesioner ini bertujuan untuk mengukur hubungan antara pemanfaatan teknologi AI dan kemampuan berpikir kritis seseorang. Jawablah dengan jujur sesuai kondisi Anda.</p>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-label">
+    <span id="progress-text">0 dari 50 pertanyaan dijawab</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- FORM -->
+  <div id="main-form">
+
+    <!-- IDENTITAS -->
+    <div class="card">
+      <div class="card-title">Identitas Responden</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nama Lengkap</label>
+          <input type="text" id="nama" placeholder="Masukkan nama lengkap Anda"/>
+        </div>
+        <div class="form-group">
+          <label>Usia</label>
+          <input type="number" id="usia" placeholder="Contoh: 21" min="10" max="100"/>
+        </div>
+        <div class="form-group">
+          <label>Jenis Kelamin</label>
+          <select id="jenisKelamin">
+            <option value="">— Pilih —</option>
+            <option value="Laki-laki">Laki-laki</option>
+            <option value="Perempuan">Perempuan</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Pekerjaan / Status</label>
+          <select id="pekerjaan">
+            <option value="">— Pilih —</option>
+            <option value="Mahasiswa">Mahasiswa</option>
+            <option value="Pelajar">Pelajar</option>
+            <option value="Karyawan Swasta">Karyawan Swasta</option>
+            <option value="PNS">PNS</option>
+            <option value="Wirausaha">Wirausaha</option>
+            <option value="Freelancer">Freelancer</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKALA KETERANGAN -->
+    <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 8px; display: flex; gap: 20px; flex-wrap: wrap;">
+      <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Keterangan Skala:</span>
+      <span style="font-size: 12px;"><strong style="color:#5a5aff;">1</strong> <span style="color:var(--text-muted)">= Sangat Tidak Setuju</span></span>
+      <span style="font-size: 12px;"><strong style="color:#7c6fff;">2</strong> <span style="color:var(--text-muted)">= Tidak Setuju</span></span>
+      <span style="font-size: 12px;"><strong style="color:#888;">3</strong> <span style="color:var(--text-muted)">= Netral</span></span>
+      <span style="font-size: 12px;"><strong style="color:#ff9b3d;">4</strong> <span style="color:var(--text-muted)">= Setuju</span></span>
+      <span style="font-size: 12px;"><strong style="color:var(--accent3);">5</strong> <span style="color:var(--text-muted)">= Sangat Setuju</span></span>
+    </div>
+
+    <!-- VARIABEL X -->
+    <div class="section-header">
+      <div class="section-tag tag-x">Variabel X</div>
+      <div class="section-desc">Pemanfaatan AI — 25 pernyataan</div>
+    </div>
+
+    <div class="card" style="padding: 20px 24px;">
+      <div class="likert-scale-header">
+        <div></div>
+        <div class="scale-label">STS<br>1</div>
+        <div class="scale-label">TS<br>2</div>
+        <div class="scale-label">N<br>3</div>
+        <div class="scale-label">S<br>4</div>
+        <div class="scale-label">SS<br>5</div>
+      </div>
+      <div id="questions-x"></div>
+    </div>
+
+    <!-- VARIABEL Y -->
+    <div class="section-header">
+      <div class="section-tag tag-y">Variabel Y</div>
+      <div class="section-desc">Kemampuan Berpikir Kritis — 25 pernyataan</div>
+    </div>
+
+    <div class="card" style="padding: 20px 24px;">
+      <div class="likert-scale-header">
+        <div></div>
+        <div class="scale-label">STS<br>1</div>
+        <div class="scale-label">TS<br>2</div>
+        <div class="scale-label">N<br>3</div>
+        <div class="scale-label">S<br>4</div>
+        <div class="scale-label">SS<br>5</div>
+      </div>
+      <div id="questions-y"></div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-wrap">
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">Kirim Jawaban</button>
+      <div class="submit-note">Pastikan semua pertanyaan sudah dijawab sebelum mengirim.</div>
+    </div>
+
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">✓</div>
+    <h2>Terima Kasih!</h2>
+    <p>Jawaban Anda telah berhasil disimpan.<br/>Kontribusi Anda sangat berarti bagi penelitian ini.</p>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api'; // relatif: otomatis ikut domain server (lokal maupun online)
+
+const questionsX = [
+  "Saya menggunakan AI untuk membantu menyelesaikan tugas sehari-hari",
+  "Saya memanfaatkan AI untuk mencari informasi yang saya butuhkan",
+  "Saya menggunakan AI lebih dari 3 kali dalam seminggu",
+  "Saya memanfaatkan AI untuk membantu memahami materi yang sulit",
+  "Saya menggunakan AI untuk membantu proses belajar saya",
+  "Saya memanfaatkan AI untuk menganalisis suatu informasi atau data",
+  "Saya menggunakan AI untuk membantu memecahkan masalah yang saya hadapi",
+  "Saya memanfaatkan AI untuk mendapatkan sudut pandang baru terhadap suatu topik",
+  "Saya menggunakan AI untuk membantu membuat keputusan",
+  "Saya memanfaatkan AI untuk membantu merangkum informasi yang panjang",
+  "Saya menggunakan AI untuk mengecek kebenaran suatu informasi",
+  "Saya memanfaatkan AI untuk membantu proses brainstorming ide",
+  "Saya menggunakan AI untuk membantu menulis argumen atau pendapat",
+  "Saya memanfaatkan AI untuk membandingkan berbagai sudut pandang suatu isu",
+  "Saya menggunakan AI untuk membantu mengevaluasi kelebihan dan kekurangan suatu hal",
+  "Saya memanfaatkan AI untuk mencari solusi alternatif dari suatu permasalahan",
+  "Saya menggunakan AI untuk membantu memahami isu-isu kompleks",
+  "Saya memanfaatkan AI untuk membantu menyusun argumen yang logis",
+  "Saya menggunakan AI untuk membantu mengidentifikasi kesalahan dalam suatu pemikiran",
+  "Saya memanfaatkan AI untuk membantu memahami hubungan sebab-akibat suatu peristiwa",
+  "Saya menggunakan AI untuk membantu menilai kredibilitas suatu sumber informasi",
+  "Saya memanfaatkan AI secara aktif dalam kegiatan diskusi atau debat",
+  "Saya menggunakan AI untuk membantu menyusun pertanyaan kritis terhadap suatu topik",
+  "Saya merasa durasi penggunaan AI saya meningkat dari waktu ke waktu",
+  "Saya merasa AI adalah alat penting dalam mendukung proses berpikir saya"
+];
+
+const questionsY = [
+  "Saya mampu mengidentifikasi masalah utama dalam suatu situasi dengan baik",
+  "Saya dapat mengevaluasi informasi sebelum mempercayainya",
+  "Saya mampu membedakan fakta dan opini dalam suatu informasi",
+  "Saya dapat menganalisis suatu permasalahan dari berbagai sudut pandang",
+  "Saya mampu menemukan kelemahan dalam suatu argumen yang saya baca",
+  "Saya dapat membuat kesimpulan berdasarkan bukti yang ada",
+  "Saya mampu mempertanyakan asumsi yang ada dalam suatu pernyataan",
+  "Saya dapat menilai apakah suatu sumber informasi dapat dipercaya atau tidak",
+  "Saya mampu mengidentifikasi bias atau keberpihakan dalam suatu informasi",
+  "Saya dapat menyusun argumen yang logis dan terstruktur",
+  "Saya mampu menghubungkan informasi dari berbagai sumber untuk menarik kesimpulan",
+  "Saya dapat mengevaluasi kelebihan dan kekurangan dari sebuah keputusan",
+  "Saya mampu berpikir secara sistematis dalam menghadapi permasalahan",
+  "Saya dapat mempertimbangkan dampak jangka panjang dari suatu keputusan",
+  "Saya mampu mendeteksi informasi yang menyesatkan atau hoaks",
+  "Saya dapat mengajukan pertanyaan yang relevan dan mendalam terhadap suatu topik",
+  "Saya mampu mengevaluasi solusi mana yang paling efektif dari beberapa pilihan",
+  "Saya dapat memahami hubungan sebab-akibat dari suatu peristiwa",
+  "Saya mampu mengubah pendapat saya ketika menemukan bukti yang lebih kuat",
+  "Saya dapat berpikir objektif meskipun topik yang dibahas bersifat sensitif",
+  "Saya mampu mengenali pola atau tren dari sekumpulan informasi",
+  "Saya dapat memisahkan emosi dari logika saat mengambil keputusan",
+  "Saya mampu mengkritisi kebijakan atau aturan secara rasional",
+  "Saya dapat menjelaskan alasan di balik setiap keputusan yang saya ambil",
+  "Saya merasa kemampuan berpikir kritis saya meningkat dari waktu ke waktu"
+];
+
+function renderQuestions(questions, prefix, containerId) {
+  const container = document.getElementById(containerId);
+  questions.forEach((q, i) => {
+    const key = `${prefix}${i+1}`;
+    const row = document.createElement('div');
+    row.className = 'question-row';
+    row.id = `row-${key}`;
+    row.innerHTML = `
+      <div class="q-text"><span class="q-number">${key}</span>${q}</div>
+      ${[1,2,3,4,5].map(v => `
+        <div class="radio-cell">
+          <input type="radio" name="${key}" id="${key}_${v}" value="${v}" onchange="onAnswer('${key}')"/>
+          <label for="${key}_${v}">${v}</label>
+        </div>
+      `).join('')}
+    `;
+    container.appendChild(row);
+  });
+}
+
+renderQuestions(questionsX, 'X', 'questions-x');
+renderQuestions(questionsY, 'Y', 'questions-y');
+
+const totalQ = 50;
+let answered = new Set();
+
+function onAnswer(key) {
+  answered.add(key);
+  const row = document.getElementById(`row-${key}`);
+  if (row) row.classList.add('answered');
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = Math.round((answered.size / totalQ) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${answered.size} dari ${totalQ} pertanyaan dijawab`;
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+function showToast(msg, type = 'error') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+async function submitForm() {
+  const nama = document.getElementById('nama').value.trim();
+  const usia = document.getElementById('usia').value;
+  const jenisKelamin = document.getElementById('jenisKelamin').value;
+  const pekerjaan = document.getElementById('pekerjaan').value;
+
+  if (!nama || !usia || !jenisKelamin || !pekerjaan) {
+    showToast('⚠️ Lengkapi identitas responden terlebih dahulu!');
+    return;
+  }
+
+  // Cek semua pertanyaan terjawab
+  const allKeys = [
+    ...Array.from({length:25}, (_,i) => `X${i+1}`),
+    ...Array.from({length:25}, (_,i) => `Y${i+1}`)
+  ];
+  const unanswered = allKeys.filter(k => !document.querySelector(`input[name="${k}"]:checked`));
+
+  if (unanswered.length > 0) {
+    showToast(`⚠️ Masih ada ${unanswered.length} pertanyaan yang belum dijawab!`);
+    // Highlight yang belum
+    unanswered.forEach(k => {
+      const row = document.getElementById(`row-${k}`);
+      if (row) { row.style.border = '1px solid #ff6b6b'; row.style.borderRadius = '10px'; }
+    });
+    setTimeout(() => {
+      unanswered.forEach(k => {
+        const row = document.getElementById(`row-${k}`);
+        if (row) row.style.border = '';
+      });
+    }, 3000);
+    return;
+  }
+
+  const answers = {};
+  allKeys.forEach(k => {
+    const checked = document.querySelector(`input[name="${k}"]:checked`);
+    if (checked) answers[k] = parseInt(checked.value);
+  });
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Mengirim...';
+
+  try {
+    const res = await fetch(`${API}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama, usia, jenisKelamin, pekerjaan, answers })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('main-form').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+    } else {
+      showToast('❌ Gagal mengirim: ' + data.message);
+      btn.disabled = false;
+      btn.textContent = 'Kirim Jawaban';
+    }
+  } catch (err) {
+    showToast('❌ Tidak dapat terhubung ke server. Pastikan server berjalan.');
+    btn.disabled = false;
+    btn.textContent = 'Kirim Jawaban';
+  }
+}
+</script>
+</body>
+</html>
