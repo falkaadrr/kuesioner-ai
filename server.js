@@ -9,7 +9,7 @@ const app = express();
 
 // --- Konfigurasi (ramah deploy) ---
 const PORT = process.env.PORT || 3000;                  // platform deploy mengisi PORT sendiri
-const ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';  // WAJIB diganti via env saat online!
+const ADMIN_KEY = process.env.ADMIN_KEY || 'statistikanjing';  // WAJIB diganti via env saat online!
 
 // --- Konfigurasi Supabase ---
 // SUPABASE_URL              : URL project (Settings > API > Project URL)
