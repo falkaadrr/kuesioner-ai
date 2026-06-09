@@ -9,7 +9,7 @@ const app = express();
 
 // --- Konfigurasi (ramah deploy) ---
 const PORT = process.env.PORT || 3000;                  // platform deploy mengisi PORT sendiri
-const ADMIN_KEY = process.env.ADMIN_KEY || 'statistikanjing';  // WAJIB diganti via env saat online!
+const ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';  // WAJIB diganti via env saat online!
 
 // --- Konfigurasi Supabase ---
 // SUPABASE_URL              : URL project (Settings > API > Project URL)
@@ -66,17 +66,30 @@ function csvCell(v) {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-const X_LABELS = Array.from({ length: 25 }, (_, i) => `X${i + 1}`);
-const Y_LABELS = Array.from({ length: 25 }, (_, i) => `Y${i + 1}`);
+// Ambil label X/Y dari data yang benar-benar ada (otomatis ikut jumlah pertanyaan)
+function deriveLabels(entries, prefix) {
+  const set = new Set();
+  for (const e of entries) {
+    for (const k of Object.keys(e.answers || {})) {
+      if (k.startsWith(prefix) && /^\d+$/.test(k.slice(prefix.length))) set.add(k);
+    }
+  }
+  return Array.from(set).sort(
+    (a, b) => parseInt(a.slice(prefix.length)) - parseInt(b.slice(prefix.length))
+  );
+}
 
 function buildMatrix(entries) {
-  // Mengembalikan { headers, rows } di mana rows = array of array (nilai mentah, belum di-escape)
+  // Mengembalikan { headers, rows, nX, nY } — kolom X/Y otomatis menyesuaikan data
+  const xLabels = deriveLabels(entries, 'X');
+  const yLabels = deriveLabels(entries, 'Y');
+
   const headers = ['No', 'ID', 'Timestamp', 'Nama', 'Usia', 'Jenis Kelamin', 'Pekerjaan',
-    ...X_LABELS, ...Y_LABELS, 'Total X', 'Total Y'];
+    ...xLabels, ...yLabels, 'Total X', 'Total Y'];
 
   const rows = entries.map((r, idx) => {
-    const xs = X_LABELS.map((l) => r.answers[l] ?? '');
-    const ys = Y_LABELS.map((l) => r.answers[l] ?? '');
+    const xs = xLabels.map((l) => r.answers[l] ?? '');
+    const ys = yLabels.map((l) => r.answers[l] ?? '');
     const totalX = xs.reduce((a, b) => a + (parseInt(b) || 0), 0);
     const totalY = ys.reduce((a, b) => a + (parseInt(b) || 0), 0);
     return [
@@ -86,7 +99,7 @@ function buildMatrix(entries) {
     ];
   });
 
-  return { headers, rows };
+  return { headers, rows, nX: xLabels.length, nY: yLabels.length };
 }
 
 // ====================================================================
@@ -191,7 +204,12 @@ app.get('/api/export/excel', requireAdmin, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Belum ada data' });
     }
 
-    const { headers, rows } = buildMatrix(entries);
+    const { headers, rows, nX, nY } = buildMatrix(entries);
+
+    // Rentang kolom dinamis (identitas 1-7, lalu X, lalu Y, lalu 2 kolom total)
+    const xStart = 8, xEnd = 7 + nX;
+    const yStart = xEnd + 1, yEnd = xEnd + nY;
+    const totalStart = yEnd + 1;
 
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Kuesioner AI';
@@ -205,9 +223,9 @@ app.get('/api/export/excel', requireAdmin, async (req, res) => {
     headerRow.eachCell((cell, col) => {
       // Warna header: identitas (navy), X (ungu), Y (hijau), total (kuning)
       let fill = 'FF1B2A4A'; // navy default
-      if (col >= 8 && col <= 32) fill = 'FF7C6FFF';        // X1..X25
-      else if (col >= 33 && col <= 57) fill = 'FF2BB39B';  // Y1..Y25
-      else if (col >= 58) fill = 'FFE0B400';               // Total X / Total Y
+      if (col >= xStart && col <= xEnd) fill = 'FF7C6FFF';
+      else if (col >= yStart && col <= yEnd) fill = 'FF2BB39B';
+      else if (col >= totalStart) fill = 'FFE0B400';
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -234,9 +252,9 @@ app.get('/api/export/excel', requireAdmin, async (req, res) => {
     ws.getColumn(5).width = 8;   // Usia
     ws.getColumn(6).width = 14;  // JK
     ws.getColumn(7).width = 16;  // Pekerjaan
-    for (let c = 8; c <= 57; c++) ws.getColumn(c).width = 5; // X & Y
-    ws.getColumn(58).width = 9;  // Total X
-    ws.getColumn(59).width = 9;  // Total Y
+    for (let c = xStart; c <= yEnd; c++) ws.getColumn(c).width = 5; // X & Y
+    ws.getColumn(totalStart).width = 9;     // Total X
+    ws.getColumn(totalStart + 1).width = 9; // Total Y
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename="data_kuesioner.xlsx"');
