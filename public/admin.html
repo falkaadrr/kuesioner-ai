@@ -258,9 +258,15 @@ async function loadData() {
   }
 }
 
+// Ambil key X/Y yang benar-benar ada di sebuah jawaban, urut secara numerik
+function keysOf(answers, prefix) {
+  return Object.keys(answers || {})
+    .filter(k => k.startsWith(prefix) && /^\d+$/.test(k.slice(prefix.length)))
+    .sort((a, b) => parseInt(a.slice(prefix.length)) - parseInt(b.slice(prefix.length)));
+}
+
 function calcTotal(answers, prefix) {
-  return Array.from({length:25}, (_,i) => answers[`${prefix}${i+1}`] || 0)
-              .reduce((a,b) => a+b, 0);
+  return keysOf(answers, prefix).reduce((a, k) => a + (parseInt(answers[k]) || 0), 0);
 }
 
 function renderStats(data) {
@@ -316,15 +322,13 @@ function showDetail(idx) {
     </div>
     <div style="margin-bottom:12px;font-size:12px;color:var(--accent);font-weight:600;letter-spacing:1px">VARIABEL X — Pemanfaatan AI</div>
     <div class="answers-grid">
-      ${Array.from({length:25}, (_,i) => {
-        const key = `X${i+1}`;
+      ${keysOf(r.answers, 'X').map((key) => {
         return `<div class="answer-cell"><div class="key">${key}</div><div class="val">${r.answers[key] || '-'}</div></div>`;
       }).join('')}
     </div>
     <div style="margin:16px 0 12px;font-size:12px;color:var(--accent3);font-weight:600;letter-spacing:1px">VARIABEL Y — Kemampuan Berpikir Kritis</div>
     <div class="answers-grid">
-      ${Array.from({length:25}, (_,i) => {
-        const key = `Y${i+1}`;
+      ${keysOf(r.answers, 'Y').map((key) => {
         return `<div class="answer-cell"><div class="key">${key}</div><div class="val">${r.answers[key] || '-'}</div></div>`;
       }).join('')}
     </div>
