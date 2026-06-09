@@ -360,7 +360,7 @@
 
   <!-- PROGRESS -->
   <div class="progress-label">
-    <span id="progress-text">0 dari 50 pertanyaan dijawab</span>
+    <span id="progress-text">0 pertanyaan dijawab</span>
     <span id="progress-pct">0%</span>
   </div>
   <div class="progress-bar-wrap">
@@ -419,7 +419,7 @@
     <!-- VARIABEL X -->
     <div class="section-header">
       <div class="section-tag tag-x">Variabel X</div>
-      <div class="section-desc">Pemanfaatan AI — 25 pernyataan</div>
+      <div class="section-desc">Pemanfaatan AI — <span id="count-x">0</span> pernyataan</div>
     </div>
 
     <div class="card" style="padding: 20px 24px;">
@@ -437,7 +437,7 @@
     <!-- VARIABEL Y -->
     <div class="section-header">
       <div class="section-tag tag-y">Variabel Y</div>
-      <div class="section-desc">Kemampuan Berpikir Kritis — 25 pernyataan</div>
+      <div class="section-desc">Kemampuan Berpikir Kritis — <span id="count-y">0</span> pernyataan</div>
     </div>
 
     <div class="card" style="padding: 20px 24px;">
@@ -490,17 +490,7 @@ const questionsX = [
   "Saya memanfaatkan AI untuk membantu proses brainstorming ide",
   "Saya menggunakan AI untuk membantu menulis argumen atau pendapat",
   "Saya memanfaatkan AI untuk membandingkan berbagai sudut pandang suatu isu",
-  "Saya menggunakan AI untuk membantu mengevaluasi kelebihan dan kekurangan suatu hal",
-  "Saya memanfaatkan AI untuk mencari solusi alternatif dari suatu permasalahan",
-  "Saya menggunakan AI untuk membantu memahami isu-isu kompleks",
-  "Saya memanfaatkan AI untuk membantu menyusun argumen yang logis",
-  "Saya menggunakan AI untuk membantu mengidentifikasi kesalahan dalam suatu pemikiran",
-  "Saya memanfaatkan AI untuk membantu memahami hubungan sebab-akibat suatu peristiwa",
-  "Saya menggunakan AI untuk membantu menilai kredibilitas suatu sumber informasi",
-  "Saya memanfaatkan AI secara aktif dalam kegiatan diskusi atau debat",
-  "Saya menggunakan AI untuk membantu menyusun pertanyaan kritis terhadap suatu topik",
-  "Saya merasa durasi penggunaan AI saya meningkat dari waktu ke waktu",
-  "Saya merasa AI adalah alat penting dalam mendukung proses berpikir saya"
+  "Saya menggunakan AI untuk membantu mengevaluasi kelebihan dan kekurangan suatu hal"
 ];
 
 const questionsY = [
@@ -518,17 +508,7 @@ const questionsY = [
   "Saya dapat mengevaluasi kelebihan dan kekurangan dari sebuah keputusan",
   "Saya mampu berpikir secara sistematis dalam menghadapi permasalahan",
   "Saya dapat mempertimbangkan dampak jangka panjang dari suatu keputusan",
-  "Saya mampu mendeteksi informasi yang menyesatkan atau hoaks",
-  "Saya dapat mengajukan pertanyaan yang relevan dan mendalam terhadap suatu topik",
-  "Saya mampu mengevaluasi solusi mana yang paling efektif dari beberapa pilihan",
-  "Saya dapat memahami hubungan sebab-akibat dari suatu peristiwa",
-  "Saya mampu mengubah pendapat saya ketika menemukan bukti yang lebih kuat",
-  "Saya dapat berpikir objektif meskipun topik yang dibahas bersifat sensitif",
-  "Saya mampu mengenali pola atau tren dari sekumpulan informasi",
-  "Saya dapat memisahkan emosi dari logika saat mengambil keputusan",
-  "Saya mampu mengkritisi kebijakan atau aturan secara rasional",
-  "Saya dapat menjelaskan alasan di balik setiap keputusan yang saya ambil",
-  "Saya merasa kemampuan berpikir kritis saya meningkat dari waktu ke waktu"
+  "Saya mampu mendeteksi informasi yang menyesatkan atau hoaks"
 ];
 
 function renderQuestions(questions, prefix, containerId) {
@@ -554,7 +534,11 @@ function renderQuestions(questions, prefix, containerId) {
 renderQuestions(questionsX, 'X', 'questions-x');
 renderQuestions(questionsY, 'Y', 'questions-y');
 
-const totalQ = 50;
+// Isi jumlah pernyataan di label otomatis (ikut panjang array)
+document.getElementById('count-x').textContent = questionsX.length;
+document.getElementById('count-y').textContent = questionsY.length;
+
+const totalQ = questionsX.length + questionsY.length;
 let answered = new Set();
 
 function onAnswer(key) {
@@ -570,6 +554,8 @@ function updateProgress() {
   document.getElementById('progress-text').textContent = `${answered.size} dari ${totalQ} pertanyaan dijawab`;
   document.getElementById('progress-pct').textContent = pct + '%';
 }
+
+updateProgress(); // set kondisi awal sesuai jumlah pertanyaan
 
 function showToast(msg, type = 'error') {
   const t = document.getElementById('toast');
@@ -591,8 +577,8 @@ async function submitForm() {
 
   // Cek semua pertanyaan terjawab
   const allKeys = [
-    ...Array.from({length:25}, (_,i) => `X${i+1}`),
-    ...Array.from({length:25}, (_,i) => `Y${i+1}`)
+    ...Array.from({length: questionsX.length}, (_,i) => `X${i+1}`),
+    ...Array.from({length: questionsY.length}, (_,i) => `Y${i+1}`)
   ];
   const unanswered = allKeys.filter(k => !document.querySelector(`input[name="${k}"]:checked`));
 
